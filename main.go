@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -28,7 +29,10 @@ type OEmbed struct {
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
 
-	body := "Error"
+	url, ok := request.QueryStringParameters["url"]
+	if !ok {
+		url = "https://oembed-banner.12bit.vn/banners/404.html"
+	}
 
 	data := OEmbed{
 		Type:            "rich",
@@ -38,19 +42,16 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (*event
 		ProviderName:    "12bit",
 		ProviderURL:     "https://12bit.vn",
 		CacheAge:        3600,
-		Width:           300,
+		Width:           800,
 		Height:          200,
-		ThumbnailURL:    "https://ddc2txxlo9fx3.cloudfront.net/static/fwd_media_preview.png",
-		ThumbnailHeight: 175,
-		ThumbnailWidth:  280,
-		HTML:            `<iframe src="https://oembed.fwdeveryone.com?thread-id=e8RFukWTS5Wo54fBNbZ2yQ" width="700" height="825" scrolling="yes" frameborder="0" allowfullscreen></iframe>`,
+		ThumbnailURL:    "https://oembed-banner.12bit.vn/logo.png",
+		ThumbnailHeight: 250,
+		ThumbnailWidth:  250,
+		HTML:            fmt.Sprintf(`<iframe src="%s" width="800" height="200" scrolling="yes" frameborder="0" allowfullscreen></iframe>`, url),
 	}
 
-	bData, err := json.Marshal(data)
-
-	if err == nil {
-		body = string(bData)
-	}
+	bData, _ := json.Marshal(data)
+	body := string(bData)
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,
